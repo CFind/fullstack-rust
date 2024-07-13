@@ -1,2 +1,5 @@
 [workspace]
+name = "fullstack-webapp"
 members = ["backend"]
+resolver = "2"
+

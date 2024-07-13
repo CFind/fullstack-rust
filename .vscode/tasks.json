@@ -1,0 +1,100 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Cargo Build Debug",
+            "type": "shell",
+            "command": "cargo build",
+            "windows": {
+                "command": "cargo build"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "detail": "Build debug version of all Rust files in project",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "runOptions": {
+                "runOn": "default"
+            }
+        },
+        {
+            "type": "cargo",
+            "command": "clippy",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "test",
+            "label": "rust: cargo clippy"
+        },
+        {
+            "type": "cargo",
+            "command": "test",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "test",
+            "label": "rust: cargo test"
+        },
+        {
+            "type": "cargo",
+            "command": "run",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "label": "rust: cargo run"
+        },
+        {
+            "type": "cargo",
+            "command": "check",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "label": "rust: cargo check"
+        },
+        {
+            "type": "cargo",
+            "command": "build",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "label": "rust: cargo build"
+        },
+        {
+            "type": "cargo",
+            "command": "build --release",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "label": "rust: cargo build --release"
+        }
+    ]
+}
