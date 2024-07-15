@@ -6,7 +6,6 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 use std::env;
 
-
 #[macro_use]
 extern crate serde_derive;
 
@@ -17,30 +16,9 @@ struct User {
     email: String,
 }
 
-//main function
-fn main() {
-
-
-    let tcp_listener = TcpListener::bind("0.0.0.0:8085").unwrap();
-
-    for stream in tcp_listener.incoming() {
-        match stream {
-            Ok(stream) => {
-                handle_client(stream);
-            }
-            Err(e) => {
-                eprintln!("Error: {}", e);
-            }
-        }
-    }
-}
-
-
-
 // ################## SERVER ##################
 
-
-// Constants
+// Constants 
 const OK_RESPONSE: &str =
     "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin:*\r\nAccess-Control-Allow-Methods: GET, POST, PUT, DELETE\r\nAccess-Control-Allow-Headers: Content-Type\r\n\r\n";
 const NOT_FOUND_RESPONSE: &str = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
@@ -108,7 +86,7 @@ fn handle_client(mut tcp_stream: TcpStream) {
                 .write_all(format!("{}{}", status_line, content).as_bytes())
                 .unwrap();
         }
-        Err((e)) => {
+        Err(e) => {
             eprintln!("Error reading from stream {}", e);
         }
     }
@@ -119,13 +97,13 @@ fn handle_client(mut tcp_stream: TcpStream) {
 //################# REST #######################
 
 //handle get all request
-fn handle_get_all_request(request: &str) -> (String, String) {
+fn handle_get_all_request(_request: &str) -> (String, String) {
     match Client::connect(DB_URL, NoTls) {
         Ok(mut client) => {
             let mut users = Vec::new();
             for row in client.query("SELECT id, name, email FROM users", &[]).expect("SHOULD return all users") {
                 users.push(User {
-                    id: Some((row.get(0))),
+                    id: Some(row.get(0)),
                     name: row.get(1),
                     email: row.get(2)
                 });
@@ -157,7 +135,7 @@ fn handle_post_request(request: &str) -> (String, String) {
                 };
                 (OK_RESPONSE.to_string(), serde_json::to_string_pretty(&user).expect("SHOULD return the new user"))
             }
-                Err((e)) => (INTERAL_ERROR.to_string(), "Failed to retrieve created user".to_string())
+                Err(e) => (INTERAL_ERROR.to_string(), format!("Failed to retrieve created user{}", e.to_string()))
             }
         }
          _ => {(INTERAL_ERROR.to_string(), "SOME STUFF WENT DOWN IN HANDLE POST REQUEST. REFACTOR MATCH. DO NOT MATCH TUPLES YOU CRAZY ITALIAN".to_string())}
@@ -208,7 +186,7 @@ fn handle_delete_request(request: &str) -> (String, String) {
 
 
 // Set Database
-fn set_database() -> Result<(), PostegressError> {
+fn set_database() -> Result<(), PostgresError> {
     let mut client = Client::connect(DB_URL, NoTls)?;
     client.batch_execute(
         "
@@ -216,10 +194,31 @@ fn set_database() -> Result<(), PostegressError> {
             id SERIAL PRIMARY KEY,
             name VARCHAR NOT NULL,
             email VARCHAR NOT NULL
-        )",
+        )
+        ",
     )?;
     Ok(())
 }
+const DB_URL: &str = env::var("DATABASE_URL");
 
+//main function
+fn main() {
+    
+    if let Err(_) = set_database() {
+        eprintln!("Failed to connect to database");
+        return;
+    }
 
+    let tcp_listener = TcpListener::bind("0.0.0.0:8085").unwrap();
 
+    for stream in tcp_listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                handle_client(stream);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+            }
+        }
+    }
+}

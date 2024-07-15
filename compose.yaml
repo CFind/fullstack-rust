@@ -1,15 +1,29 @@
 services:
-  db: 
-    container_name: pgdb
+  rustapp:
+    container_name: rustapp
+    image: CFind/rustapp:latest
+    build:
+      context: ./backend
+      dockerfile: rust.dockerfile
+      args:
+        DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    environment:  # Ensure DATABASE_URL is available at runtime
+       DATABASE_URL: ${DATABASE_URL}
+  db:
+    container_name: db
     image: postgres:13
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - 5432:5432
     volumes:
-      - pg-data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
 
-volumes: 
-  pg-data: {}
+volumes:
+  pgdata: {}
