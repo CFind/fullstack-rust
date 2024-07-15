@@ -4,7 +4,6 @@ use postgres::{Client, NoTls};
 use postgres::Error as PostgresError;
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
-use std::env;
 
 #[macro_use]
 extern crate serde_derive;
@@ -16,6 +15,8 @@ struct User {
     email: String,
 }
 
+
+
 // ################## SERVER ##################
 
 // Constants 
@@ -24,6 +25,8 @@ const OK_RESPONSE: &str =
 const NOT_FOUND_RESPONSE: &str = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
 const INTERAL_ERROR: &str = "HTTP/1.1 500 INTERNAL SERVER ERROR\r\n\r\n";
 
+// Database URL
+const DB_URL: &str = "postgres://postgres:password@localhost:5432/postgres";
 
 // ##################### Deserialize ###################
 // get id from request
@@ -199,7 +202,7 @@ fn set_database() -> Result<(), PostgresError> {
     )?;
     Ok(())
 }
-const DB_URL: &str = env::var("DATABASE_URL");
+
 
 //main function
 fn main() {
