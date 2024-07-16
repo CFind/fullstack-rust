@@ -2,7 +2,7 @@
 
 use postgres::{ Client, NoTls };
 use postgres::Error as PostgresError;
-use std::net::{ TcpListener, TcpStream };
+use std:: net::{ TcpListener, TcpStream };
 use std::io::{ Read, Write };
 
 #[macro_use]
@@ -15,7 +15,7 @@ struct User {
     email: String,
 }
 
-// ################## SERVER ##################
+// ####################### SERVER #######################
 
 // Constants
 const OK_RESPONSE: &str =
@@ -25,7 +25,7 @@ const INTERAL_ERROR: &str = "HTTP/1.1 500 INTERNAL SERVER ERROR\r\n\r\n";
 
 // ##################### Deserialize ###################
 // get id from request
-fn get_id(request: &str) -> &str {
+fn deserialize_id(request: &str) -> &str {
     request.split("/").nth(4).unwrap_or_default().split_whitespace().next().unwrap_or_default()
 }
 
@@ -88,7 +88,7 @@ fn handle_get_all_request(_request: &str) -> (String, String) {
 
 // Handle GET request
 fn handle_get_request(request: &str) -> (String, String) {
-    match (get_id(&request).parse::<i32>(), Client::connect(DB_URL, NoTls)) {
+    match (deserialize_id(&request).parse::<i32>(), Client::connect(DB_URL, NoTls)) {
         (Ok(id), Ok(mut client)) =>
             match client.query_one("SELECT * FROM users WHERE id = $1", &[&id]) {
                 Ok(row) => {
@@ -117,7 +117,7 @@ fn handle_post_request(request: &str) -> (String, String) {
                     "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id",
                     &[&user.name, &user.email]
                 )
-                .expect("SHOULD return exactly one row.");
+                .unwrap();
 
             let user_id: i32 = row.get(0);
 
@@ -152,20 +152,13 @@ fn handle_post_request(request: &str) -> (String, String) {
 
 // Handle PUT request
 fn handle_put_request(request: &str) -> (String, String) {
-    match
-        (
-            get_id(&request).parse::<i32>(),
-            deserialize_req_body(&request),
-            Client::connect(DB_URL, NoTls),
-        )
-    {
+    match(deserialize_id(&request).parse::<i32>(), deserialize_req_body(request), Client::connect(DB_URL, NoTls),) {
         (Ok(id), Ok(user), Ok(mut client)) => {
-            client
-                .execute(
-                    "UPDATE users SET name = $1, email = $2, WHERE id = $3",
-                    &[&user.name, &user.email, &id]
+            client.execute("UPDATE users SET name = $1, email = $2 WHERE id = $3",
+                                         &[&user.name, &user.email, &id]
                 )
-                .expect("SHOULD update exactly one row.");
+                .unwrap(); 
+
             (OK_RESPONSE.to_string(), format!("User {} updated", id))
         }
         _ => (INTERAL_ERROR.to_string(), "Failed to update user".to_string()),
@@ -174,7 +167,7 @@ fn handle_put_request(request: &str) -> (String, String) {
 
 // Handle DELETE request
 fn handle_delete_request(request: &str) -> (String, String) {
-    match (get_id(&request).parse::<i32>(), Client::connect(DB_URL, NoTls)) {
+    match (deserialize_id(&request).parse::<i32>(), Client::connect(DB_URL, NoTls)) {
         (Ok(id), Ok(mut client)) => {
             let rows_altered: u64 = client
                 .execute("DELETE FROM users WHERE id = $1", &[&id])
@@ -211,12 +204,10 @@ fn set_database() -> Result<(), PostgresError> {
 //main function
 fn main() {
 
-    match set_database() {
-        Err(e) => {
-            eprintln!("Failed to setup database: {}", e);
-            return;
-        },
-        Ok(()) => println!("Database setup complete")
+    // Set up the database
+    if let Err(e) = set_database(){
+        eprintln!("Error setting up database: {}", e);
+        return;
     }
 
     let tcp_listener = TcpListener::bind(format!("0.0.0.0:8080")).unwrap();
