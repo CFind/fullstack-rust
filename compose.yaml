@@ -11,8 +11,6 @@ services:
       - 8080:8080
     depends_on:
       - db
-    environment:  # Ensure DATABASE_URL is available at runtime
-       DATABASE_URL: ${DATABASE_URL}
   db:
     container_name: db
     image: postgres:13
