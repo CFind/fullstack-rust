@@ -38,47 +38,11 @@ To get started with this project, follow these steps:
 
 7. Start the application using Docker Compose:
     ```
-    docker-compose up
+    docker compose up
     ```
 
-8. Open your web browser and visit `http://localhost:` to access the application.
+8. Open your web browser and visit `http://localhost:3000` to access the application.
 
-## Frontend
-
-To start the frontend of the application using `create-next-app@latest` and add it to Docker Compose, follow these steps:
-
-1. Install `create-next-app` globally by running the following command:
-    ```
-    npm install -g create-next-app
-    ```
-
-2. Create a new Next.js project by running the following command:
-    ```
-    npx create-next-app@latest
-    ```
-
-3. Navigate to the project directory:
-    ```
-    cd your-project-directory
-    ```
-
-4. Open the `compose.yaml` file in your workspace and add the following service definition under the `services` section:
-    ```yaml
-    frontend:
-      build:
-         context: .
-         dockerfile: Dockerfile
-      ports:
-         - 3000:3000
-      depends_on:
-         - backend
-    ```
-
-5. Save the `compose.yaml` file.
-
-6. Build and start the application using Docker Compose:
-    ```
-    docker-compose up --build
     ```
 
 7. Open your web browser and visit `http://localhost:3000` to access the frontend of the application.
