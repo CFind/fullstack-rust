@@ -36,7 +36,7 @@ fn deserialize_req_body(request: &str) -> Result<User, serde_json::Error> {
 
 // create client
 fn handle_client(mut tcp_stream: TcpStream) {
-    let mut buffer = [0; 1024];
+    let mut buffer: [u8; 1024] = [0; 1024];
     let mut request: String = String::new();
 
     match tcp_stream.read(&mut buffer) {
